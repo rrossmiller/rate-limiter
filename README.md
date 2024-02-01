@@ -1,7 +1,7 @@
 # rate-limiter
 Use the RateLimiter and worker to schedule your requests to a rate limited service (like OpenAI)
 
-## Langs
+## Languages
 - [x] python
 - [ ] go
 - [ ] rust 
