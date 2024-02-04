@@ -24,7 +24,7 @@ class RateLimiter:
         print(f"RPM: {self.rpm}")
         self.period = 60  # seconds
         self.times: list[float] = []
-        self.tokens: list[int] = []
+        # self.tokens: list[int] = []
         self.spacing = self.period / self.rpm  # + 0.01
         # encoding = tiktoken.encoding_for_model("gpt-4")
 
