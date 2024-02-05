@@ -3,7 +3,7 @@ Use the RateLimiter and worker to schedule your requests to a rate limited servi
 
 ## Languages
 - [x] python
-- [ ] go
+- [x] go
 - [ ] rust 
 - [ ] java
 - [ ] js
