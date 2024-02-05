@@ -1,4 +1,4 @@
-package main
+package ratelimiter
 
 import (
 	"fmt"
@@ -14,7 +14,8 @@ type RateLimiter struct {
 	spacing  time.Duration // minimum time between requests
 }
 
-func (r *RateLimiter) Default(rpm int) {
+func Default(rpm int)*RateLimiter {
+	r := &RateLimiter{}
 	r.rpm = rpm
 	r.period = 1 * time.Minute
 	x := float64(60) / float64(rpm)
@@ -26,6 +27,7 @@ func (r *RateLimiter) Default(rpm int) {
 	r.spacing = d
 	fmt.Println("RPM:", r.rpm)
 	fmt.Println("Spacing:", r.spacing)
+	return r
 }
 
 func (r *RateLimiter) RateLimit() {

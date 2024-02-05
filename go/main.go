@@ -8,6 +8,7 @@ import (
 	"sync"
 
 	"github.com/schollz/progressbar/v3"
+	"rate-limiter/ratelimiter"
 )
 
 func main() {
@@ -17,11 +18,10 @@ func main() {
 		panic(err)
 	}
 
-	rl := RateLimiter{}
-	rl.Default(600)
+	rl := ratelimiter.Default(600)
 	nTasks := 600
 
-	run(nTasks, client, &rl)
+	run(nTasks, client, rl)
 	results(client)
 
 	fmt.Println()
@@ -29,12 +29,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	runPool(nTasks, 12, client, &rl)
+	runPool(nTasks, 12, client, rl)
 	results(client)
 }
 
 // One worker per request
-func run(nTasks int, client *http.Client, rl *RateLimiter) {
+func run(nTasks int, client *http.Client, rl *ratelimiter.RateLimiter) {
 	results := make(chan map[string]int, nTasks)
 	bar := progressbar.Default(int64(nTasks))
 
@@ -67,7 +67,7 @@ func run(nTasks int, client *http.Client, rl *RateLimiter) {
 }
 
 // worker pool
-func runPool(nTasks, nWorkers int, client *http.Client, rl *RateLimiter) {
+func runPool(nTasks, nWorkers int, client *http.Client, rl *ratelimiter.RateLimiter) {
 	jobs := make(chan int, nTasks)
 	results := make(chan map[string]int, nTasks)
 	bar := progressbar.Default(int64(nTasks))
@@ -87,7 +87,7 @@ func runPool(nTasks, nWorkers int, client *http.Client, rl *RateLimiter) {
 	close(results)
 }
 
-func worker(rl *RateLimiter, client *http.Client, jobs chan int, results chan map[string]int, wg *sync.WaitGroup, bar *progressbar.ProgressBar) {
+func worker(rl *ratelimiter.RateLimiter, client *http.Client, jobs chan int, results chan map[string]int, wg *sync.WaitGroup, bar *progressbar.ProgressBar) {
 	defer wg.Done()
 
 	for x := range jobs {
