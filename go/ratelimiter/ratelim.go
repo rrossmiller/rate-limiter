@@ -14,7 +14,7 @@ type RateLimiter struct {
 	spacing  time.Duration // minimum time between requests
 }
 
-func Default(rpm int)*RateLimiter {
+func Default(rpm int) *RateLimiter {
 	r := &RateLimiter{}
 	r.rpm = rpm
 	r.period = 1 * time.Minute

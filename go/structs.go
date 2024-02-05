@@ -14,5 +14,5 @@ type Results struct {
 	Rpm           []float64 `json:"rpm"`
 	TotalRequests int       `json:"totalRequests"`
 	// RpmPerSec     []float64 `json:"rpmPerSec"`
-	RpmPerSec     []float64 `json:"-"`
+	RpmPerSec []float64 `json:"-"`
 }
