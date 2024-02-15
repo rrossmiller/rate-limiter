@@ -2,18 +2,25 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 class App {
     public static void main(String[] args) throws InterruptedException, Exception {
-        int n = 600/10;
+        int n = 600 / 10;
         var rl = new RateLimiter(600);
         System.out.println(rl);
         if (args.length > 0)
             return;
+
+        System.out.println("N reqs = " + n);
+        System.out.println("Should take a minimum of " + n * 60 / 600 + " seconds");
         run(n, rl);
-        // runPool(n);
+        runPool(n, rl);
     }
 
     /*
@@ -57,12 +64,53 @@ class App {
     }
 
     /*
-     * worker pool
+     * worker pool. This is generally not necessary. It's totally fine to spin up as
+     * many vthreads as there are tasks
      */
-    public static void runPool(int n) throws Exception {
-        throw new Exception("ahhh" + n);
+    public static void runPool(int n, RateLimiter rl) throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+
+        clear();
+        System.out.println();
+        // add tasks to the queue
+        var q = new ArrayBlockingQueue<HttpRequest>(n, true);
+        for (int i = 0; i < n; i++) {
+            String url = String.format("http://localhost:3000?i=%d", i);
+            HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                    .GET()
+                    .build();
+            q.add(request);
+        }
+
+        List<Thread> threads = new ArrayList<>();
+        for (int i = 0; i < 32; i++) {
+            var t = Thread.ofVirtual().start(() -> {
+                while (!q.isEmpty()) {
+                    try {
+                        var req = q.take();
+                        rl.schedule(0);
+                        // send the request
+                        CompletableFuture<HttpResponse<String>> responseFut = client.sendAsync(req,
+                                HttpResponse.BodyHandlers.ofString());
+
+                        responseFut.join();
+                    } catch (InterruptedException e) {
+                    }
+                }
+            });
+            threads.add(t);
+        }
+        while (!threads.isEmpty()) {
+            threads = threads.stream().filter(e -> e.isAlive()).collect(Collectors.toList());
+        }
+
+        System.out.println();
+        results();
     }
 
+    /*
+     * Helper methods
+     */
     public static void clear() {
         HttpClient client = HttpClient.newHttpClient();
         // create a request
