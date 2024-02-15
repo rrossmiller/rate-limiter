@@ -31,7 +31,6 @@ func Default(rpm int) *RateLimiter {
 }
 
 func (r *RateLimiter) RateLimit() {
-
 	//lock
 	r.mu.Lock()
 	defer r.mu.Unlock()
