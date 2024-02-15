@@ -1,4 +1,4 @@
 clear
 echo '****************'
 javac *.java &&
-    java App
+	java App $@ | less

@@ -7,15 +7,25 @@ import java.util.concurrent.Executors;
 
 class App {
     public static void main(String[] args) throws InterruptedException, Exception {
-        HttpClient client = HttpClient.newHttpClient();
+        int n = 600/10;
         var rl = new RateLimiter(600);
+        System.out.println(rl);
+        if (args.length > 0)
+            return;
+        run(n, rl);
+        // runPool(n);
+    }
 
-        // if (args.length == 0)
-        // return;
-        rl.clear();
+    /*
+     * One worker per request
+     */
+    public static void run(int n, RateLimiter rl) throws InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+
+        clear();
         System.out.println();
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
-            for (int i = 0; i < 1200; i++) {
+            for (int i = 0; i < n; i++) {
                 int j = i + 1;
                 executor.submit(() -> {
                     // create a request
@@ -23,13 +33,15 @@ class App {
                     HttpRequest request = HttpRequest.newBuilder(URI.create(url))
                             .GET()
                             .build();
+
                     rl.schedule(j);
 
                     // send the request
                     CompletableFuture<HttpResponse<String>> responseFut = client.sendAsync(request,
                             HttpResponse.BodyHandlers.ofString());
 
-                    var response = responseFut.join();
+                    responseFut.join();
+                    // var response = responseFut.join();
                     // Access the response status code and body
                     // int statusCode = response.statusCode();
                     // String responseBody = response.body();
@@ -39,15 +51,65 @@ class App {
                     // System.out.println();
                 });
             }
-            // var t1 = Thread.ofVirtual().start(r);
-            // var t2 = Thread.ofVirtual().start(r);
-            // System.out.println();
-            // t1.join();
-            // System.out.println();
-            // t2.join();
-
         }
         System.out.println();
-        rl.results();
+        results();
+    }
+
+    /*
+     * worker pool
+     */
+    public static void runPool(int n) throws Exception {
+        throw new Exception("ahhh" + n);
+    }
+
+    public static void clear() {
+        HttpClient client = HttpClient.newHttpClient();
+        // create a request
+        String url = "http://localhost:3000";
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                .DELETE()
+                .build();
+        try {
+            // send the request
+            CompletableFuture<HttpResponse<String>> responseFut = client.sendAsync(request,
+                    HttpResponse.BodyHandlers.ofString());
+
+            var response = responseFut.join();
+            // Access the response status code and body
+            int statusCode = response.statusCode();
+            String responseBody = response.body();
+
+            // System.out.println("Response Code: " + statusCode);
+            System.out.println("Cleared:\n" + responseBody);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void results() {
+        HttpClient client = HttpClient.newHttpClient();
+        // create a request
+        String url = "http://localhost:3000/results";
+        HttpRequest request = HttpRequest.newBuilder(URI.create(url))
+                .GET()
+                .build();
+        try {
+            // send the request
+            CompletableFuture<HttpResponse<String>> responseFut = client.sendAsync(request,
+                    HttpResponse.BodyHandlers.ofString());
+
+            var response = responseFut.join();
+            // Access the response status code and body
+            // int statusCode = response.statusCode();
+            String responseBody = response.body();
+
+            // System.out.println("Response Code: " + statusCode);
+            System.out.println("Results Response Body:\n" + responseBody);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
