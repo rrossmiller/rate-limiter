@@ -88,11 +88,12 @@ class App {
         rl.setBar(n);
         List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < 32; i++) {
+            int j=i;
             var t = Thread.ofVirtual().start(() -> {
                 while (!q.isEmpty()) {
                     try {
                         var req = q.take();
-                        rl.schedule(i);
+                        rl.schedule(j);
                         // send the request
                         CompletableFuture<HttpResponse<String>> responseFut = client.sendAsync(req,
                                 HttpResponse.BodyHandlers.ofString());
