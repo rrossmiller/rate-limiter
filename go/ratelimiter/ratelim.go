@@ -18,7 +18,7 @@ func Default(rpm int) *RateLimiter {
 	r := &RateLimiter{}
 	r.rpm = rpm
 	r.period = 1 * time.Minute
-	x := float64(60) / float64(rpm)
+	x := r.period.Seconds() / float64(rpm) // seconds per request
 	d, err := time.ParseDuration(fmt.Sprintf("%vs", x))
 	if err != nil {
 		panic(err)
@@ -31,7 +31,6 @@ func Default(rpm int) *RateLimiter {
 }
 
 func (r *RateLimiter) RateLimit() {
-
 	//lock
 	r.mu.Lock()
 	defer r.mu.Unlock()
