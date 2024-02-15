@@ -2,13 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"log"
+	"math/rand/v2"
 	"net/http"
 
 	"fmt"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	"sync"
 	"time"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 type LimitTracker struct {
@@ -34,10 +37,12 @@ func main() {
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 		//TODO: get i from params to keep track of the order of requests
 		i := r.URL.Query().Get("i")
-
 		l.mu.Lock()
 		l.reqs = append(l.reqs, time.Now())
 		l.mu.Unlock()
+		sleep := time.Duration(rand.Float64()*5000) * time.Millisecond
+		log.Printf("Sleeping for %v", sleep)
+		time.Sleep(sleep)
 		// w.Write([]byte(fmt.Sprintf(`{"Requests": "%v"}`, l.reqs[len(l.reqs)-1])))
 		w.Write([]byte(fmt.Sprintf(`{"id": %v}`, i)))
 
