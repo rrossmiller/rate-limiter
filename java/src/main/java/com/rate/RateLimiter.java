@@ -1,6 +1,10 @@
+package com.rate;
+
 import java.time.Duration;
 import java.time.Instant;
 import java.util.concurrent.locks.ReentrantLock;
+
+import me.tongfei.progressbar.ProgressBar;
 
 class RateLimiter {
     private ReentrantLock lock = new ReentrantLock();
@@ -8,6 +12,7 @@ class RateLimiter {
     private Duration period; // time period for rpm
     private Instant lastTime; // last request time
     private Duration spacing; // minimum time between requests
+    private ProgressBar bar;
 
     public RateLimiter(int rpm) {
         this.lastTime = Instant.ofEpochSecond(0);
@@ -36,7 +41,15 @@ class RateLimiter {
         } finally {
             this.lastTime = Instant.now(); // update now after wait
             this.lock.unlock();
+            if (this.bar != null) {
+                this.bar.step();
+            }
         }
+    }
+
+    public void setBar(int n) {
+        var pb = new ProgressBar("Tasks", n);
+        this.bar = pb;
     }
 
     public String toString() {

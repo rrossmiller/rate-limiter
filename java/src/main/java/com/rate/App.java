@@ -1,3 +1,5 @@
+package com.rate;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -19,7 +21,7 @@ class App {
 
         System.out.println("N reqs = " + n);
         System.out.println("Should take a minimum of " + n * 60 / 600 + " seconds");
-        run(n, rl);
+        // run(n, rl);
         runPool(n, rl);
     }
 
@@ -44,7 +46,9 @@ class App {
                     rl.schedule(j);
 
                     // send the request
-                    CompletableFuture<HttpResponse<String>> responseFut = client.sendAsync(request,
+                    // CompletableFuture<HttpResponse<String>> responseFut =
+                    // client.sendAsync(request,
+                    var responseFut = client.sendAsync(request,
                             HttpResponse.BodyHandlers.ofString());
 
                     responseFut.join();
@@ -69,7 +73,6 @@ class App {
      */
     public static void runPool(int n, RateLimiter rl) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
-
         clear();
         System.out.println();
         // add tasks to the queue
@@ -82,13 +85,14 @@ class App {
             q.add(request);
         }
 
+        rl.setBar(n);
         List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < 32; i++) {
             var t = Thread.ofVirtual().start(() -> {
                 while (!q.isEmpty()) {
                     try {
                         var req = q.take();
-                        rl.schedule(0);
+                        rl.schedule(i);
                         // send the request
                         CompletableFuture<HttpResponse<String>> responseFut = client.sendAsync(req,
                                 HttpResponse.BodyHandlers.ofString());
